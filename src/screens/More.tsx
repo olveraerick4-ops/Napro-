@@ -6,6 +6,8 @@ import { demoData } from '../data/demo'
 import { exportBackup } from '../lib/export'
 import { BaseArt, STAMP_COLORS, Stamp, Swatch } from '../components/art'
 import { MethodPicker, StagePicker } from './Onboarding'
+import { FACTS } from '../data/facts'
+import { Alba } from '../components/Mascot'
 import { stageDef } from '../lib/stages'
 
 function Guide({ method, yellow, stage }: { method: MethodId; yellow: boolean; stage: LifeStage }) {
@@ -103,10 +105,10 @@ function Guide({ method, yellow, stage }: { method: MethodId; yellow: boolean; s
   )
 }
 
-export function More() {
+export function More({ initial = 'guia' }: { initial?: string }) {
   const data = useData()
   const s = data.settings
-  const [open, setOpen] = useState<string | null>('guia')
+  const [open, setOpen] = useState<string | null>(initial)
   const [msg, setMsg] = useState('')
   const [confirmDel, setConfirmDel] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -147,6 +149,22 @@ export function More() {
 
       {section("guia", `Guía: ${methodDef(s.method).short}`, <>
         <Guide method={s.method} yellow={!!s.yellowStamps} stage={s.stage} />
+      </>)}
+
+      {section("datos-naturales", "Lo que los métodos naturales te ofrecen", <>
+        <div className="facts-intro">
+          <Alba mood="feliz" size={56} />
+          <p className="small">Algunos datos que quizá no conocías. Cada uno lleva su fuente.</p>
+        </div>
+        <ul className="facts">
+          {FACTS.map((f) => (
+            <li key={f.title}>
+              <b>{f.title}</b>
+              <p>{f.text}</p>
+              <small>Fuente: {f.source}</small>
+            </li>
+          ))}
+        </ul>
       </>)}
 
       {section("etapa", `Etapa de vida: ${stageDef(s.stage).name}`, <>

@@ -24,6 +24,11 @@ export function App() {
   const data = useData()
   const [tab, setTab] = useState<Tab>('home')
   const [editing, setEditing] = useState<string | null>(null)
+  const [moreSection, setMoreSection] = useState<string>('guia')
+  const go = (t: Tab, section?: string) => {
+    if (section) setMoreSection(section)
+    setTab(t)
+  }
   const cycles = useMemo(() => buildCycles(data), [data])
   const signals = useMemo(() => insights(data, cycles), [data, cycles])
   useEffect(() => {
@@ -35,15 +40,15 @@ export function App() {
   return (
     <div className="app">
       <main className="screen">
-        {tab === 'home' && <Home cycles={cycles} signals={signals} onEdit={setEditing} onGo={setTab} />}
+        {tab === 'home' && <Home cycles={cycles} signals={signals} onEdit={setEditing} onGo={go} />}
         {tab === 'chart' && <ChartScreen cycles={cycles} onEdit={setEditing} />}
-        {tab === 'stats' && <Summary cycles={cycles} signals={signals} onGo={setTab} />}
+        {tab === 'stats' && <Summary cycles={cycles} signals={signals} onGo={go} />}
         {tab === 'clinic' && <Clinics />}
-        {tab === 'more' && <More />}
+        {tab === 'more' && <More key={moreSection} initial={moreSection} />}
       </main>
       <nav className="tabbar" aria-label="Secciones">
         {TABS.map((t) => (
-          <button key={t.id} className={tab === t.id ? 'on' : ''} onClick={() => setTab(t.id)} aria-current={tab === t.id ? 'page' : undefined}>
+          <button key={t.id} className={tab === t.id ? 'on' : ''} onClick={() => go(t.id)} aria-current={tab === t.id ? 'page' : undefined}>
             <Icon name={t.id} />
             <span>{t.label}</span>
           </button>

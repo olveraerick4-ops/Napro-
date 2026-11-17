@@ -16,7 +16,7 @@ export default defineConfig({
         short_name: 'Aurora',
         description: 'Registro del ciclo para métodos naturales: Creighton, Billings, sintotérmico, temperatura y calendario.',
         lang: 'es',
-        theme_color: '#7b4a72',
+        theme_color: '#1f6b73',
         background_color: '#faf6f3',
         display: 'standalone',
         orientation: 'portrait',

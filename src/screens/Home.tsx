@@ -6,6 +6,9 @@ import { useData } from '../lib/store'
 import { stageDef } from '../lib/stages'
 import type { Insight } from '../lib/insights'
 import type { Tab } from '../App'
+import { CompanionCard } from '../components/Mascot'
+import { companionMessage } from '../lib/companion'
+import { factOfDay } from '../data/facts'
 import { Icon, Stamp } from '../components/art'
 
 const FERT = {
@@ -14,7 +17,7 @@ const FERT = {
   desconocido: { label: 'Sin determinar', cls: 'unk' },
 }
 
-export function Home({ cycles, signals, onEdit, onGo }: { cycles: Cycle[]; signals: Insight[]; onEdit: (d: string) => void; onGo: (t: Tab) => void }) {
+export function Home({ cycles, signals, onEdit, onGo }: { cycles: Cycle[]; signals: Insight[]; onEdit: (d: string) => void; onGo: (t: Tab, section?: string) => void }) {
   const data = useData()
   const method = data.settings.method
   const def = methodDef(method)
@@ -28,6 +31,15 @@ export function Home({ cycles, signals, onEdit, onGo }: { cycles: Cycle[]; signa
   const since = data.settings.stageSince
   const f = info?.entry && !stage.noFertility ? FERT[info.fertility] : null
   const important = signals.filter((x) => x.level !== 'info')
+  const msg = companionMessage(data, cycles, signals, now)
+  const fact = factOfDay(now)
+  const ACTIONS = {
+    register: { label: info?.entry ? 'Editar registro' : 'Registrar hoy', onClick: () => onEdit(now) },
+    signals: { label: 'Ver señales', onClick: () => onGo('stats') },
+    clinics: { label: 'Buscar un profesional', onClick: () => onGo('clinic') },
+    stage: { label: 'Indicar la fecha', onClick: () => onGo('more', 'etapa') },
+    facts: undefined,
+  }
   // embarazo: semanas desde la concepción (+2 semanas obstétricas) y fecha probable de parto
   const preg =
     stage.id === 'embarazo' && since
@@ -45,10 +57,12 @@ export function Home({ cycles, signals, onEdit, onGo }: { cycles: Cycle[]; signa
           <div className="eyebrow">{def.name}</div>
           <h1>{fmtLong(now)}</h1>
         </div>
-        <button className="stage-chip" onClick={() => onGo('more')}>
+        <button className="stage-chip" onClick={() => onGo('more', 'etapa')}>
           {stage.short}
         </button>
       </header>
+
+      <CompanionCard mood={msg.mood} title={msg.title} text={msg.text} action={msg.action ? ACTIONS[msg.action] : undefined} />
 
       {stage.id === 'embarazo' && (
         <section className="card preg">
@@ -107,7 +121,7 @@ export function Home({ cycles, signals, onEdit, onGo }: { cycles: Cycle[]; signa
         </section>
       )}
 
-      {important.length > 0 && (
+      {important.length > 0 && msg.action !== 'signals' && msg.action !== 'clinics' && (
         <button className={'card signal-teaser' + (important.some((x) => x.level === 'urgente') ? ' urgent' : '')} onClick={() => onGo('stats')}>
           <b>
             {important.some((x) => x.level === 'urgente')
@@ -144,6 +158,18 @@ export function Home({ cycles, signals, onEdit, onGo }: { cycles: Cycle[]; signa
               </button>
             )
           })}
+        </div>
+      </section>
+
+      <section className="card fact">
+        <span className="eyebrow">¿Sabías que…?</span>
+        <h2>{fact.title}</h2>
+        <p>{fact.text}</p>
+        <div className="fact-foot">
+          <small>Fuente: {fact.source}</small>
+          <button className="link-btn" onClick={() => onGo('more', 'datos-naturales')}>
+            Ver más datos →
+          </button>
         </div>
       </section>
 

@@ -112,7 +112,7 @@ export function BaseArt({ base }: { base: CrBase }) {
 function Slide() {
   // flechas de «deslizamiento»: sensación lubricante
   return (
-    <g fill="none" stroke="#7b4a72" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <g fill="none" stroke="#1f6b73" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
       <path d="M40 11h12M48 8l4 3-4 3" />
     </g>
   )

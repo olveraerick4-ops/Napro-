@@ -137,3 +137,22 @@ describe('señales', () => {
     expect(buildCycles(d, '2026-01-03')[0].days[1].stamp).toBe('white-baby')
   })
 })
+
+import { companionMessage } from './companion'
+import { FACTS, factOfDay } from '../data/facts'
+
+describe('Alba', () => {
+  it('saluda sin datos y celebra el día después del Pico', () => {
+    expect(companionMessage(mk('creighton', []), [], [], '2026-01-01', 10).mood).toBe('hola')
+    const d = mk('creighton', [{ bleeding: 'M', periodStart: true }, dry, np, pk, dry])
+    const cy = buildCycles(d, '2026-01-05')
+    expect(companionMessage(d, cy, [], '2026-01-05', 10).title).toBe('¡Ayer fue tu día Pico!')
+  })
+  it('recuerda la observación de la noche', () => {
+    const d = mk('creighton', [dry])
+    expect(companionMessage(d, buildCycles(d, '2026-01-02'), [], '2026-01-02', 21).title).toBe('Antes de dormir')
+  })
+  it('dato del día siempre válido', () => {
+    expect(FACTS).toContain(factOfDay('2026-11-17'))
+  })
+})
