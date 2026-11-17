@@ -1,49 +1,49 @@
 :root {
-  --bg: #f6f5f1;
+  --bg: #faf6f5;
   --surface: #ffffff;
-  --surface-2: #eceeea;
-  --ink: #1f2a2c;
-  --ink-2: #566668;
-  --ink-3: #879496;
-  --line: #dfe4e1;
-  --accent: #1f6b73;
+  --surface-2: #f3eaeb;
+  --ink: #2d2224;
+  --ink-2: #6e5a5e;
+  --ink-3: #a08d90;
+  --line: #ecdfdf;
+  --accent: #a4566a;
   --accent-ink: #ffffff;
-  --accent-soft: #dfeeed;
+  --accent-soft: #f6e4e8;
   --fert: #b4534a;
   --fert-bg: #fbeae7;
   --infert: #3d7f4f;
   --infert-bg: #e6f2e9;
   --warn: #a8472f;
-  --series: #1f6b73;
-  --series-2: #d07a3e;
+  --series: #a4566a;
+  --series-2: #c98a3e;
   --urgent: #b3261e;
   --urgent-bg: #fbe4e1;
   --consult: #9a5b12;
   --consult-bg: #fdf1dc;
   --info: #4a6a8a;
   --info-bg: #e7eef5;
-  --shadow: 0 1px 2px rgba(20, 50, 52, 0.06), 0 4px 14px rgba(20, 50, 52, 0.05);
+  --shadow: 0 1px 2px rgba(70, 30, 40, 0.06), 0 4px 14px rgba(70, 30, 40, 0.05);
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --bg: #131a1b;
-    --surface: #1b2425;
-    --surface-2: #243031;
-    --ink: #ebf1f0;
-    --ink-2: #a7b6b5;
-    --ink-3: #7a8b8b;
-    --line: #2c3a3b;
-    --accent: #7cc4c8;
-    --accent-ink: #0e2729;
-    --accent-soft: #1d3a3c;
+    --bg: #1b1517;
+    --surface: #251d20;
+    --surface-2: #2f2529;
+    --ink: #f5ecee;
+    --ink-2: #c2aeb3;
+    --ink-3: #8f7c81;
+    --line: #3a2d31;
+    --accent: #e5a3b3;
+    --accent-ink: #2a141b;
+    --accent-soft: #40262e;
     --fert: #f0a59c;
     --fert-bg: #40262a;
     --infert: #8fcf9f;
     --infert-bg: #23362a;
     --warn: #f0a58e;
-    --series: #7cc4c8;
-    --series-2: #e8a26f;
+    --series: #e5a3b3;
+    --series-2: #e8b27f;
     --urgent: #f2a39b;
     --urgent-bg: #45211f;
     --consult: #efc07a;
@@ -55,23 +55,23 @@
   }
 }
 :root[data-theme='dark'] {
-    --bg: #131a1b;
-    --surface: #1b2425;
-    --surface-2: #243031;
-    --ink: #ebf1f0;
-    --ink-2: #a7b6b5;
-    --ink-3: #7a8b8b;
-    --line: #2c3a3b;
-    --accent: #7cc4c8;
-    --accent-ink: #0e2729;
-    --accent-soft: #1d3a3c;
+    --bg: #1b1517;
+    --surface: #251d20;
+    --surface-2: #2f2529;
+    --ink: #f5ecee;
+    --ink-2: #c2aeb3;
+    --ink-3: #8f7c81;
+    --line: #3a2d31;
+    --accent: #e5a3b3;
+    --accent-ink: #2a141b;
+    --accent-soft: #40262e;
     --fert: #f0a59c;
     --fert-bg: #40262a;
     --infert: #8fcf9f;
     --infert-bg: #23362a;
     --warn: #f0a58e;
-    --series: #7cc4c8;
-    --series-2: #e8a26f;
+    --series: #e5a3b3;
+    --series-2: #e8b27f;
     --urgent: #f2a39b;
     --urgent-bg: #45211f;
     --consult: #efc07a;
@@ -249,7 +249,7 @@ input[type='search'], input[type='number'], select, .temp-input, .notes { width:
 .method.on .radio { border-color: var(--accent); background: radial-gradient(var(--accent) 45%, transparent 50%); }
 
 /* hoja de registro */
-.sheet-backdrop { position: fixed; inset: 0; z-index: 20; background: rgba(12, 28, 30, 0.45); display: flex; align-items: flex-end; justify-content: center; }
+.sheet-backdrop { position: fixed; inset: 0; z-index: 20; background: rgba(35, 15, 22, 0.45); display: flex; align-items: flex-end; justify-content: center; }
 .sheet { width: 100%; max-width: 520px; max-height: 94dvh; background: var(--bg); border-radius: 20px 20px 0 0; display: flex; flex-direction: column; animation: up 0.22s ease-out; }
 @keyframes up { from { transform: translateY(30px); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .sheet { animation: none; } }

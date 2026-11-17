@@ -278,7 +278,7 @@ export async function exportPdf(data: AppData, cycles: Cycle[], signals: Insight
     startY: 20,
     margin: { left: PW / 2 + 4, right: M },
     styles: { fontSize: 8.5 },
-    headStyles: { fillColor: [31, 107, 115] },
+    headStyles: { fillColor: [164, 86, 106] },
     head: [['Ciclo', 'Inicio', 'Duración', 'Día Pico', 'Subida temp.', 'Post-Pico']],
     body: cycles
       .filter((c) => c.hasStart)
@@ -296,7 +296,7 @@ export async function exportPdf(data: AppData, cycles: Cycle[], signals: Insight
       startY: Math.max((doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY, 70) + 8,
       margin: { left: M, right: M },
       styles: { fontSize: 8, cellPadding: 1.6, valign: 'top' },
-      headStyles: { fillColor: [31, 107, 115] },
+      headStyles: { fillColor: [164, 86, 106] },
       head: [['Señal', 'Qué se observa', 'Con qué se asocia', 'Dónde']],
       body: signals.map((i) => [`${i.title}\n(${LEVEL_TXT[i.level]})`, i.seen, i.meaning, i.evidence.join('\n')]),
       columnStyles: { 0: { cellWidth: 45, fontStyle: 'bold' }, 1: { cellWidth: 60 }, 3: { cellWidth: 50 } },
