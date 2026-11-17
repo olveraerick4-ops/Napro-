@@ -41,7 +41,7 @@ export function Onboarding() {
     return (
       <div className="onb">
         <div className="onb-hero">
-          <img src="/icon.svg" alt="" width="84" height="84" />
+          <img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" width="84" height="84" />
           <h1>Aurora</h1>
           <p className="lead">Tu ciclo, naturalmente.</p>
         </div>

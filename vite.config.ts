@@ -2,10 +2,13 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
+const preview = process.env.PREVIEW === '1'
+
 export default defineConfig({
+  base: preview ? './' : '/',
   plugins: [
     react(),
-    VitePWA({
+    !preview && VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg'],
       manifest: {
