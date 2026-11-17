@@ -295,7 +295,7 @@ input[type='search'], input[type='number'], select, .temp-input, .notes { width:
 /* más */
 .acc { padding: 0; gap: 0; }
 .acc-head { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 16px; border: 0; background: none; text-align: left; min-height: 56px; }
-.chev { font-size: 1.2rem; color: var(--ink-3); transition: transform 0.15s; }
+.chev { flex: none; color: var(--ink-3); transition: transform 0.15s; }
 .chev.up { transform: rotate(180deg); }
 .acc-body { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 10px; }
 .guide { display: flex; flex-direction: column; gap: 8px; font-size: 0.92rem; }

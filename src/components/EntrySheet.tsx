@@ -257,6 +257,10 @@ export function EntrySheet({ date, onClose }: { date: string; onClose: () => voi
             </section>
           )}
 
+          {!data.settings.yellowStamps && def.usesMucus && (
+            <p className="muted small">¿Tu instructora te indicó usar estampas amarillas? Actívalas en Más → Estampas amarillas.</p>
+          )}
+
           <section>
             <h3>Otros</h3>
             <label className="check">

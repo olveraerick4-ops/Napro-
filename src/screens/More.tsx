@@ -130,7 +130,7 @@ export function More() {
     <section className="card acc" key={id}>
       <button className="acc-head" onClick={() => toggle(id)} aria-expanded={open === id}>
         <h2>{title}</h2>
-        <span className={'chev' + (open === id ? ' up' : '')}>⌄</span>
+        <svg className={'chev' + (open === id ? ' up' : '')} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
       </button>
       {open === id && <div className="acc-body">{children}</div>}
     </section>
@@ -153,17 +153,25 @@ export function More() {
         <StagePicker value={s.stage} since={s.stageSince} onChange={(stage, stageSince) => setSettings({ stage, stageSince })} />
       </>)}
 
+      {section("amarillas", `Estampas amarillas: ${s.yellowStamps ? 'activadas' : 'desactivadas'}`, <>
+        <p className="small">Solo se usan cuando tu instructora lo indica, para marcar un flujo que en tu caso no es fértil (flujo continuo, moco tras el Pico por una inflamación leve, lactancia…).</p>
+        {methodDef(s.method).usesMucus ? (
+          <>
+            <label className="check yellow-check">
+              <input id="yellow-toggle" type="checkbox" checked={!!s.yellowStamps} onChange={(e) => setSettings({ yellowStamps: e.target.checked })} />
+              <span>
+                Mi instructora me indicó usar estampas amarillas
+                <small> · al registrar cada día aparecerá la opción «Usar estampa amarilla este día»</small>
+              </span>
+            </label>
+          </>
+        ) : (
+          <p className="muted small">Las estampas amarillas son de los métodos de moco. Cambia a Creighton, Billings o Sintotérmico para usarlas.</p>
+        )}
+      </>)}
+
       {section("metodo", "Cambiar de método", <>
         <MethodPicker value={s.method} onChange={(method) => setSettings({ method })} />
-        {methodDef(s.method).usesMucus && (
-          <label className="check">
-            <input type="checkbox" checked={!!s.yellowStamps} onChange={(e) => setSettings({ yellowStamps: e.target.checked })} />
-            <span>
-              Mi instructora me indicó usar estampas amarillas
-              <small> · añade la opción al registrar cada día</small>
-            </span>
-          </label>
-        )}
         {s.method === 'calendario' && (
           <div className="filters">
             <label>
