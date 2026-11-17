@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { Insight } from '../lib/insights'
-import { Alba } from './Mascot'
+import { Owl } from './Mascot'
 
 const LEVEL = {
   urgente: { label: 'Consulta pronto', cls: 'lv-urgent' },
@@ -53,7 +53,7 @@ export function InsightList({ items, onClinics }: { items: Insight[]; onClinics:
         </div>
       ) : (
         <div className="facts-intro">
-          <Alba mood="fiesta" size={52} />
+          <Owl mood="fiesta" size={52} />
           <p className="ok">No vemos ninguna señal llamativa en los ciclos registrados. Cuantos más ciclos completos registres, más fiable es esta revisión.</p>
         </div>
       )}

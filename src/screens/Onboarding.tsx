@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { LifeStage, MethodId } from '../types'
 import { STAGES, stageDef } from '../lib/stages'
-import { Alba } from '../components/Mascot'
+import { Owl } from '../components/Mascot'
 import { FACTS } from '../data/facts'
 import { METHODS } from '../lib/methods'
 import { setSettings, useData } from '../lib/store'
@@ -76,12 +76,12 @@ export function Onboarding() {
     return (
       <div className="onb">
         <div className="onb-hero">
-          <Alba mood="hola" size={120} />
+          <Owl mood="hola" size={120} />
           <h1>Aurora</h1>
           <p className="lead">Tu ciclo, naturalmente.</p>
         </div>
         <div className="onb-bubble">
-          <b>¡Hola! Soy Alba.</b> Te acompañaré mientras aprendes a leer tu ciclo: te recordaré tus observaciones, te explicaré tu gráfica y te avisaré si algo merece una consulta.
+          <b>¡Hola! Soy Sofía.</b> Te acompañaré mientras aprendes a leer tu ciclo: te recordaré tus observaciones, te explicaré tu gráfica y te avisaré si algo merece una consulta.
         </div>
         <ul className="onb-points">
           <li>Registra cada día con el método natural que tú uses.</li>
@@ -103,7 +103,7 @@ export function Onboarding() {
     return (
       <div className="onb">
         <div className="onb-ask">
-          <Alba mood="pensando" size={56} />
+          <Owl mood="pensando" size={56} />
           <h1 className="onb-title">¿En qué etapa estás?</h1>
         </div>
         <p className="hint">Cada etapa tiene sus propias instrucciones y patrones de gráfica. Puedes cambiarla cuando quieras.</p>
@@ -127,7 +127,7 @@ export function Onboarding() {
   return (
     <div className="onb">
       <div className="onb-ask">
-        <Alba mood="feliz" size={56} />
+        <Owl mood="feliz" size={56} />
         <h1 className="onb-title">¿Qué método quieres usar?</h1>
       </div>
       <p className="hint">Podrás cambiarlo cuando quieras; tus registros no se pierden.</p>

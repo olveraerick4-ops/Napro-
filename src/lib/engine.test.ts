@@ -141,7 +141,7 @@ describe('señales', () => {
 import { companionMessage } from './companion'
 import { FACTS, factOfDay } from '../data/facts'
 
-describe('Alba', () => {
+describe('Sofía (compañera)', () => {
   it('saluda sin datos y celebra el día después del Pico', () => {
     expect(companionMessage(mk('creighton', []), [], [], '2026-01-01', 10).mood).toBe('hola')
     const d = mk('creighton', [{ bleeding: 'M', periodStart: true }, dry, np, pk, dry])

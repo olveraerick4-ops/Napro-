@@ -7,7 +7,7 @@ import { exportBackup } from '../lib/export'
 import { BaseArt, STAMP_COLORS, Stamp, Swatch } from '../components/art'
 import { MethodPicker, StagePicker } from './Onboarding'
 import { FACTS } from '../data/facts'
-import { Alba } from '../components/Mascot'
+import { Owl } from '../components/Mascot'
 import { stageDef } from '../lib/stages'
 
 function Guide({ method, yellow, stage }: { method: MethodId; yellow: boolean; stage: LifeStage }) {
@@ -153,7 +153,7 @@ export function More({ initial = 'guia' }: { initial?: string }) {
 
       {section("datos-naturales", "Lo que los métodos naturales te ofrecen", <>
         <div className="facts-intro">
-          <Alba mood="feliz" size={56} />
+          <Owl mood="feliz" size={56} />
           <p className="small">Algunos datos que quizá no conocías. Cada uno lleva su fuente.</p>
         </div>
         <ul className="facts">

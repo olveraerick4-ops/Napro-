@@ -13,7 +13,7 @@ export interface CompanionMsg {
   action?: 'register' | 'signals' | 'clinics' | 'stage' | 'facts'
 }
 
-/** Lo que Alba dice en «Hoy», según el momento del ciclo, la etapa y lo registrado. */
+/** Lo que dice Sofía en «Hoy», según el momento del ciclo, la etapa y lo registrado. */
 export function companionMessage(data: AppData, cycles: Cycle[], signals: Insight[], now: string = today(), hour = new Date().getHours()): CompanionMsg {
   const method = data.settings.method
   const def = methodDef(method)
@@ -30,7 +30,7 @@ export function companionMessage(data: AppData, cycles: Cycle[], signals: Insigh
   if (!hasAny)
     return {
       mood: 'hola',
-      title: '¡Hola! Soy Alba',
+      title: '¡Hola! Soy Sofía',
       text: `Te acompaño en tu ${def.short === 'Calendario' ? 'calendario' : 'método ' + def.short}. Empieza registrando hoy: yo te iré guiando día a día.`,
       action: 'register',
     }
