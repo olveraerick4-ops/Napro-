@@ -8,6 +8,7 @@ export const STAMP_COLORS: Record<StampKind, { fill: string; stroke: string; lab
   green: { fill: '#4f9e63', stroke: '#3d824f', label: 'Verde · seco, infértil' },
   'white-baby': { fill: '#ffffff', stroke: '#b9b0b6', label: 'Blanca con bebé · moco' },
   'green-baby': { fill: '#4f9e63', stroke: '#3d824f', label: 'Verde con bebé · seco dentro de la cuenta de 3' },
+  yellow: { fill: '#ecc845', stroke: '#c9a227', label: 'Amarilla · flujo no fértil (indicada por tu instructora)' },
   plain: { fill: '#ece6ea', stroke: '#cfc6cc', label: 'Día registrado' },
 }
 
@@ -27,7 +28,7 @@ export function Stamp({ kind, mark, size = 36 }: { kind: StampKind; mark?: strin
         </g>
       )}
       {mark && (
-        <text x="15" y={baby ? 12.5 : 22} textAnchor="middle" fontSize={baby ? 11 : 14} fontWeight="700" fill={kind === 'white-baby' || kind === 'empty' || kind === 'plain' ? '#3a3340' : '#fff'} fontFamily="system-ui, sans-serif">
+        <text x="15" y={baby ? 12.5 : 22} textAnchor="middle" fontSize={baby ? 11 : 14} fontWeight="700" fill={kind === 'white-baby' || kind === 'empty' || kind === 'plain' || kind === 'yellow' ? '#3a3340' : '#fff'} fontFamily="system-ui, sans-serif">
           {mark}
         </text>
       )}

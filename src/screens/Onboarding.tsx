@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import type { MethodId } from '../types'
+import type { LifeStage, MethodId } from '../types'
+import { STAGES, stageDef } from '../lib/stages'
 import { METHODS } from '../lib/methods'
 import { setSettings, useData } from '../lib/store'
 
@@ -32,10 +33,42 @@ export function MethodPicker({ value, onChange }: { value: MethodId; onChange: (
   )
 }
 
+export function StagePicker({
+  value,
+  since,
+  onChange,
+}: {
+  value: LifeStage
+  since?: string
+  onChange: (stage: LifeStage, since?: string) => void
+}) {
+  const sd = stageDef(value)
+  return (
+    <div className="stage-picker">
+      <div className="chips" role="radiogroup" aria-label="Etapa de vida">
+        {STAGES.map((st) => (
+          <button key={st.id} role="radio" aria-checked={value === st.id} className={'chip' + (value === st.id ? ' on' : '')} onClick={() => onChange(st.id, since)}>
+            {st.name}
+          </button>
+        ))}
+      </div>
+      <p className="hint">{sd.description}</p>
+      {sd.dateLabel && (
+        <label className="field">
+          <span>{sd.dateLabel}</span>
+          <input id="stage-since" type="date" value={since ?? ''} max={new Date().toISOString().slice(0, 10)} onChange={(e) => onChange(value, e.target.value || undefined)} />
+        </label>
+      )}
+    </div>
+  )
+}
+
 export function Onboarding() {
   const data = useData()
   const [step, setStep] = useState(0)
   const [method, setMethod] = useState<MethodId>(data.settings.method)
+  const [stage, setStage] = useState<LifeStage>(data.settings.stage)
+  const [since, setSince] = useState<string | undefined>(data.settings.stageSince)
 
   if (step === 0)
     return (
@@ -57,15 +90,34 @@ export function Onboarding() {
       </div>
     )
 
+  if (step === 2)
+    return (
+      <div className="onb">
+        <h1 className="onb-title">¿En qué etapa estás?</h1>
+        <p className="hint">Cada etapa tiene sus propias instrucciones y patrones de gráfica. Puedes cambiarla cuando quieras.</p>
+        <StagePicker
+          value={stage}
+          since={since}
+          onChange={(st, d) => {
+            setStage(st)
+            setSince(d)
+          }}
+        />
+        <p className="disclaimer">
+          Aurora es un cuaderno de registro. No es un producto sanitario ni sustituye a tu instructora o a tu médico.
+        </p>
+        <button className="btn primary big" onClick={() => setSettings({ method, stage, stageSince: since, onboarded: true })}>
+          Empezar a registrar
+        </button>
+      </div>
+    )
+
   return (
     <div className="onb">
       <h1 className="onb-title">¿Qué método quieres usar?</h1>
       <p className="hint">Podrás cambiarlo cuando quieras; tus registros no se pierden.</p>
       <MethodPicker value={method} onChange={setMethod} />
-      <p className="disclaimer">
-        Aurora es un cuaderno de registro. No es un producto sanitario ni sustituye a tu instructora o a tu médico.
-      </p>
-      <button className="btn primary big" onClick={() => setSettings({ method, onboarded: true })}>
+      <button className="btn primary big" onClick={() => setStep(2)}>
         Continuar
       </button>
     </div>

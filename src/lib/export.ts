@@ -1,8 +1,12 @@
 import type { AppData } from '../types'
 import type { Cycle, StampKind } from './engine'
 import { stats } from './engine'
-import { fmtDM, fmtShort, today } from './dates'
+import { fmtDM, fmtShort, num, today } from './dates'
 import { BLEEDING, codeFor, describeEntry, methodDef } from './methods'
+import type { Insight } from './insights'
+import { stageDef } from './stages'
+
+const LEVEL_TXT = { urgente: 'Consulta pronto', consultar: 'Comentar con un profesional', info: 'Información' }
 
 const STAMP_NAME: Record<StampKind, string> = {
   empty: '',
@@ -10,6 +14,7 @@ const STAMP_NAME: Record<StampKind, string> = {
   green: 'Verde',
   'white-baby': 'Blanca con bebé',
   'green-baby': 'Verde con bebé',
+  yellow: 'Amarilla',
   plain: '',
 }
 const STAMP_RGB: Record<StampKind, [number, number, number] | null> = {
@@ -18,6 +23,7 @@ const STAMP_RGB: Record<StampKind, [number, number, number] | null> = {
   green: [79, 158, 99],
   'white-baby': [255, 255, 255],
   'green-baby': [79, 158, 99],
+  yellow: [236, 200, 69],
   plain: [236, 230, 234],
 }
 const hex = (c: [number, number, number]) => 'FF' + c.map((n) => n.toString(16).padStart(2, '0')).join('').toUpperCase()
@@ -36,7 +42,7 @@ function download(blob: Blob, name: string) {
 
 const cycleName = (c: Cycle) => (c.hasStart ? `Ciclo ${c.index}` : 'Previo')
 
-export async function exportExcel(data: AppData, cycles: Cycle[]) {
+export async function exportExcel(data: AppData, cycles: Cycle[], signals: Insight[] = []) {
   const ExcelJS = (await import('exceljs')).default
   const method = data.settings.method
   const def = methodDef(method)
@@ -84,7 +90,7 @@ export async function exportExcel(data: AppData, cycles: Cycle[]) {
       if (rgb && d.stamp !== 'plain') {
         const cell = row.getCell('stamp')
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: hex(rgb) } }
-        if (d.stamp !== 'white-baby') cell.font = { color: { argb: 'FFFFFFFF' }, bold: true }
+        if (d.stamp !== 'white-baby' && d.stamp !== 'yellow') cell.font = { color: { argb: 'FFFFFFFF' }, bold: true }
       }
     }
 
@@ -144,6 +150,7 @@ export async function exportExcel(data: AppData, cycles: Cycle[]) {
   const s = stats(cycles)
   r.addRow([])
   r.addRow(['Método', def.name])
+  r.addRow(['Etapa de vida', stageDef(data.settings.stage).name])
   r.addRow(['Ciclos completos', s.completed])
   r.addRow(['Duración media', s.avg ?? ''])
   r.addRow(['Más corto', s.shortest ?? ''])
@@ -151,11 +158,28 @@ export async function exportExcel(data: AppData, cycles: Cycle[]) {
   r.addRow(['Día Pico medio', s.avgPeak ?? ''])
   r.addRow(['Fase post-Pico media', s.avgPostPeak ?? ''])
 
+  // --- Hoja 4: señales ---
+  const sg = wb.addWorksheet('Señales')
+  sg.columns = [
+    { header: 'Nivel', key: 'l', width: 26 },
+    { header: 'Señal', key: 't', width: 34 },
+    { header: 'Qué se observa', key: 's', width: 60 },
+    { header: 'Con qué se asocia', key: 'm', width: 80 },
+    { header: 'Dónde', key: 'e', width: 50 },
+  ]
+  sg.getRow(1).font = { bold: true }
+  for (const i of signals) {
+    const row = sg.addRow({ l: LEVEL_TXT[i.level], t: i.title, s: i.seen, m: i.meaning, e: i.evidence.join('; ') })
+    row.alignment = { wrapText: true, vertical: 'top' }
+  }
+  sg.addRow([])
+  sg.addRow(['', 'Patrones descritos en la guía del Modelo Creighton. No es un diagnóstico.'])
+
   const buf = await wb.xlsx.writeBuffer()
   download(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), `aurora-${today()}.xlsx`)
 }
 
-export async function exportPdf(data: AppData, cycles: Cycle[]) {
+export async function exportPdf(data: AppData, cycles: Cycle[], signals: Insight[] = []) {
   const { jsPDF } = await import('jspdf')
   const { default: autoTable } = await import('jspdf-autotable')
   const method = data.settings.method
@@ -169,7 +193,7 @@ export async function exportPdf(data: AppData, cycles: Cycle[]) {
     doc.setFont('helvetica', 'bold').setFontSize(15).setTextColor(60, 40, 60)
     doc.text('Gráfica del ciclo', M, 15)
     doc.setFont('helvetica', 'normal').setFontSize(9).setTextColor(110)
-    doc.text(`${def.name} · generado el ${fmtShort(today())} ${today().slice(0, 4)} con Aurora`, M, 21)
+    doc.text(`${def.name} · ${stageDef(data.settings.stage).name} · generado el ${fmtShort(today())} ${today().slice(0, 4)} con Aurora`, M, 21)
   }
   title()
 
@@ -205,7 +229,7 @@ export async function exportPdf(data: AppData, cycles: Cycle[]) {
           doc.setFillColor(...rgb)
           doc.rect(x + 0.5, y + 4, cw - 1, 9, 'FD')
         } else doc.rect(x + 0.5, y + 4, cw - 1, 9, 'S')
-        const light = d.stamp === 'white-baby' || d.stamp === 'plain' || d.stamp === 'empty'
+        const light = d.stamp === 'white-baby' || d.stamp === 'plain' || d.stamp === 'empty' || d.stamp === 'yellow'
         if (d.stamp.endsWith('baby')) {
           doc.setDrawColor(light ? 90 : 255).setLineWidth(0.25)
           doc.circle(x + cw / 2, y + 10.4, 1.6, 'S')
@@ -242,11 +266,11 @@ export async function exportPdf(data: AppData, cycles: Cycle[]) {
     body: [
       ['Método', def.name],
       ['Ciclos completos', String(s.completed)],
-      ['Duración media', s.avg ? `${s.avg} días` : '—'],
+      ['Duración media', s.avg ? `${num(s.avg)} días` : '—'],
       ['Más corto / más largo', s.shortest ? `${s.shortest} / ${s.longest} días` : '—'],
-      ['Día Pico medio', s.avgPeak ? `día ${s.avgPeak}` : '—'],
-      ['Fase post-Pico media', s.avgPostPeak ? `${s.avgPostPeak} días` : '—'],
-      ['Días de regla (media)', s.avgBleed ? `${s.avgBleed}` : '—'],
+      ['Día Pico medio', s.avgPeak ? `día ${num(s.avgPeak)}` : '—'],
+      ['Fase post-Pico media', s.avgPostPeak ? `${num(s.avgPostPeak)} días` : '—'],
+      ['Días de regla (media)', s.avgBleed ? num(s.avgBleed) : '—'],
     ],
     columnStyles: { 0: { textColor: 110 }, 1: { fontStyle: 'bold' } },
   })
@@ -267,8 +291,24 @@ export async function exportPdf(data: AppData, cycles: Cycle[]) {
         c.postPeak !== null ? `${c.postPeak} d` : '—',
       ]),
   })
+  if (signals.length) {
+    autoTable(doc, {
+      startY: Math.max((doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY, 70) + 8,
+      margin: { left: M, right: M },
+      styles: { fontSize: 8, cellPadding: 1.6, valign: 'top' },
+      headStyles: { fillColor: [123, 74, 114] },
+      head: [['Señal', 'Qué se observa', 'Con qué se asocia', 'Dónde']],
+      body: signals.map((i) => [`${i.title}\n(${LEVEL_TXT[i.level]})`, i.seen, i.meaning, i.evidence.join('\n')]),
+      columnStyles: { 0: { cellWidth: 45, fontStyle: 'bold' }, 1: { cellWidth: 60 }, 3: { cellWidth: 50 } },
+    })
+  }
+  let fy = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 8
+  if (fy > 200) {
+    doc.addPage()
+    fy = 20
+  }
   doc.setFont('helvetica', 'normal').setFontSize(7.5).setTextColor(130)
-  doc.text('Registro personal generado por la usuaria. No es un informe médico. Estampas calculadas a partir de las observaciones registradas.', M, 200)
+  doc.text('Registro personal generado por la usuaria. No es un informe médico. Estampas y señales calculadas a partir de las observaciones registradas.', M, fy)
   doc.save(`aurora-${today()}.pdf`)
 }
 

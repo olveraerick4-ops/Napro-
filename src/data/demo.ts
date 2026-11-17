@@ -22,6 +22,8 @@ const patterns: Row[][] = [28, 30, 27].map((len, c) => {
     else if (d === peak) rows.push(['', '10', 'KL', 'AD'])
     else if (d === peak + 1) rows.push(['', '6', 'C', 'X1'])
     else if (d === peak + 6 && c === 0) rows.push(['', '6', 'PC', 'X1'])
+    // ejemplo de manchado premenstrual al final del segundo ciclo
+    else if (c === 1 && d > len - 3) rows.push([d === len ? 'B' : 'VL', '0', '', 'AD'])
     else rows.push(['', d % 4 === 0 ? '4' : '0', '', 'AD'])
   }
   return rows

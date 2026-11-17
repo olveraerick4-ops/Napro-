@@ -1,8 +1,11 @@
 import type { Cycle } from '../lib/engine'
-import { addDays, fmtLong, fmtShort, num, today } from '../lib/dates'
+import { addDays, diffDays, fmtLong, fmtShort, num, today } from '../lib/dates'
 import { codeFor, describeEntry, methodDef } from '../lib/methods'
 import { stats } from '../lib/engine'
 import { useData } from '../lib/store'
+import { stageDef } from '../lib/stages'
+import type { Insight } from '../lib/insights'
+import type { Tab } from '../App'
 import { Icon, Stamp } from '../components/art'
 
 const FERT = {
@@ -11,7 +14,7 @@ const FERT = {
   desconocido: { label: 'Sin determinar', cls: 'unk' },
 }
 
-export function Home({ cycles, onEdit }: { cycles: Cycle[]; onEdit: (d: string) => void }) {
+export function Home({ cycles, signals, onEdit, onGo }: { cycles: Cycle[]; signals: Insight[]; onEdit: (d: string) => void; onGo: (t: Tab) => void }) {
   const data = useData()
   const method = data.settings.method
   const def = methodDef(method)
@@ -21,7 +24,19 @@ export function Home({ cycles, onEdit }: { cycles: Cycle[]; onEdit: (d: string) 
   const st = stats(cycles)
   const week = Array.from({ length: 7 }, (_, i) => addDays(now, i - 6))
   const all = new Map(cycles.flatMap((c) => c.days).map((d) => [d.date, d]))
-  const f = info?.entry ? FERT[info.fertility] : null
+  const stage = stageDef(data.settings.stage)
+  const since = data.settings.stageSince
+  const f = info?.entry && !stage.noFertility ? FERT[info.fertility] : null
+  const important = signals.filter((x) => x.level !== 'info')
+  // embarazo: semanas desde la concepción (+2 semanas obstétricas) y fecha probable de parto
+  const preg =
+    stage.id === 'embarazo' && since
+      ? (() => {
+          const dd = diffDays(since, now) + 14
+          return { w: Math.floor(dd / 7), d: dd % 7, due: addDays(since, 266) }
+        })()
+      : null
+  const weeksSince = since && stage.dateLabel && stage.id !== 'embarazo' ? Math.floor(diffDays(since, now) / 7) : null
 
   return (
     <>
@@ -30,12 +45,41 @@ export function Home({ cycles, onEdit }: { cycles: Cycle[]; onEdit: (d: string) 
           <div className="eyebrow">{def.name}</div>
           <h1>{fmtLong(now)}</h1>
         </div>
+        <button className="stage-chip" onClick={() => onGo('more')}>
+          {stage.short}
+        </button>
       </header>
+
+      {stage.id === 'embarazo' && (
+        <section className="card preg">
+          {preg ? (
+            <>
+              <div className="preg-row">
+                <div>
+                  <span className="preg-num">
+                    {preg.w}
+                    <small> sem</small> {preg.d}
+                    <small> d</small>
+                  </span>
+                  <span className="muted small">de embarazo</span>
+                </div>
+                <div className="preg-due">
+                  <span className="muted small">Fecha probable de parto</span>
+                  <b>{fmtShort(preg.due)} {preg.due.slice(0, 4)}</b>
+                </div>
+              </div>
+              <p className="muted small">Calculado desde la concepción ({fmtShort(since!)}). Las semanas se cuentan como lo hace el médico, desde dos semanas antes de la concepción.</p>
+            </>
+          ) : (
+            <p className="muted">Indica el día de la concepción (el día Pico del ciclo en que te embarazaste) en <b>Más → Etapa de vida</b> para ver las semanas y la fecha probable de parto.</p>
+          )}
+        </section>
+      )}
 
       <section className="card hero">
         <div className="hero-day">
           <span className="hero-num">{cur?.hasStart && info ? info.cd : '–'}</span>
-          <span className="hero-cap">día del ciclo</span>
+          <span className="hero-cap">{cur?.hasStart && info ? 'día del ciclo' : weeksSince !== null ? `semana ${weeksSince + 1} desde ${stage.id === 'tras-pildora' ? 'que la dejaste' : stage.id === 'tras-perdida' ? 'la pérdida' : 'el parto'}` : 'día del ciclo'}</span>
         </div>
         <div className="hero-info">
           {info?.entry ? (
@@ -63,6 +107,30 @@ export function Home({ cycles, onEdit }: { cycles: Cycle[]; onEdit: (d: string) 
         </section>
       )}
 
+      {important.length > 0 && (
+        <button className={'card signal-teaser' + (important.some((x) => x.level === 'urgente') ? ' urgent' : '')} onClick={() => onGo('stats')}>
+          <b>
+            {important.some((x) => x.level === 'urgente')
+              ? important.find((x) => x.level === 'urgente')!.title
+              : important.length === 1
+                ? `Tu gráfica muestra una señal: ${important[0].title.toLowerCase()}`
+                : `Tu gráfica muestra ${important.length} señales para comentar con un profesional`}
+          </b>
+          <span className="muted small">Ver detalles en Resumen →</span>
+        </button>
+      )}
+
+      {stage.notes.length > 0 && stage.id !== 'regular' && (
+        <section className="card">
+          <h2>{stage.name}</h2>
+          <ul className="stage-notes">
+            {stage.notes.map((n) => (
+              <li key={n}>{n}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <section className="card">
         <h2>Últimos 7 días</h2>
         <div className="week">
@@ -79,7 +147,7 @@ export function Home({ cycles, onEdit }: { cycles: Cycle[]; onEdit: (d: string) 
         </div>
       </section>
 
-      {st.nextPeriod && (
+      {st.nextPeriod && !stage.noFertility && (
         <section className="card row">
           <div>
             <h2>Próxima regla estimada</h2>

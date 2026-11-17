@@ -52,8 +52,9 @@ export function EntrySheet({ date, onClose }: { date: string; onClose: () => voi
   const hasContent = !!(draft.bleeding || draft.cr || draft.mucus || draft.temp != null || draft.notes || draft.intercourse)
   const canSave = hasContent && !tempBad && !modsMissing
 
-  const cls = classify(draft, method)
-  const previewStamp = draft.bleeding ? 'red' : cls === 'peak' || cls === 'nonpeak' ? 'white-baby' : cls === 'dry' ? 'green' : 'empty'
+  if (!data.settings.yellowStamps || !draft.yellow) delete draft.yellow
+  const cls = classify(draft, method, !!data.settings.yellowStamps)
+  const previewStamp = draft.yellow && cls === 'dry' ? 'yellow' : draft.bleeding ? 'red' : cls === 'peak' || cls === 'nonpeak' ? 'white-baby' : cls === 'dry' ? 'green' : 'empty'
 
   const save = () => {
     saveEntry(draft)
@@ -238,6 +239,19 @@ export function EntrySheet({ date, onClose }: { date: string; onClose: () => voi
                 <input type="checkbox" checked={!!e.tempDisturbed} onChange={(ev) => patch({ tempDisturbed: ev.target.checked })} />
                 <span>
                   Medición alterada <small>(fiebre, mala noche, alcohol, otra hora): no contará</small>
+                </span>
+              </label>
+            </section>
+          )}
+
+          {data.settings.yellowStamps && def.usesMucus && (
+            <section>
+              <h3>Estampa amarilla</h3>
+              <label className="check yellow-check">
+                <input type="checkbox" checked={!!e.yellow} onChange={(ev) => patch({ yellow: ev.target.checked })} />
+                <span>
+                  Usar estampa amarilla este día
+                  <small> · solo si tu instructora te indicó que este flujo es tu flujo no fértil. Cuenta como día seco.</small>
                 </span>
               </label>
             </section>

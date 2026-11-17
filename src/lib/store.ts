@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'react'
 import type { AppData, DayEntry, Settings } from '../types'
 
 const KEY = 'aurora.v1'
-const empty = (): AppData => ({ settings: { onboarded: false, method: 'creighton', country: 'ES' }, entries: {} })
+const empty = (): AppData => ({ settings: { onboarded: false, method: 'creighton', country: 'ES', stage: 'regular' }, entries: {} })
 
 function load(): AppData {
   try {

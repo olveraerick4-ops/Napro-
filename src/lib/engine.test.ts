@@ -6,7 +6,7 @@ import { addDays } from './dates'
 import { demoData } from '../data/demo'
 
 const mk = (method: AppData['settings']['method'], rows: Partial<DayEntry>[], start = '2026-01-01'): AppData => ({
-  settings: { onboarded: true, method, country: 'ES' },
+  settings: { onboarded: true, method, country: 'ES', stage: 'regular' },
   entries: Object.fromEntries(rows.map((r, i) => [addDays(start, i), { ...r, date: addDays(start, i) }])),
 })
 const dry = { cr: { base: '0' as const, mods: [] } }
@@ -76,5 +76,64 @@ describe('ciclos y estadísticas', () => {
     const d = demoData(mk('calendario', []))
     const cy = buildCycles(d)
     expect(cy[2].calendarWindow).toEqual([10, 19])
+  })
+})
+
+import { insights } from './insights'
+
+describe('señales', () => {
+  const regla = [{ bleeding: 'H' as const, periodStart: true }, { bleeding: 'H' as const }, { bleeding: 'M' as const }]
+  const cycle = (pre: number, post: number, extra: Partial<DayEntry>[] = []) => [
+    ...regla,
+    ...Array(pre).fill(dry),
+    np,
+    np,
+    pk,
+    pk,
+    ...extra,
+    ...Array(post - extra.length).fill(dry),
+  ]
+  const ids = (d: AppData, now: string) => insights(d, buildCycles(d, now), now).map((i) => i.id)
+
+  it('datos de ejemplo: solo el sangrado premenstrual', () => {
+    const d = demoData(mk('creighton', []))
+    expect(insights(d, buildCycles(d)).map((i) => i.id)).toEqual(['premenstrual'])
+  })
+  it('fase post-Pico corta y variable', () => {
+    const rows = [...cycle(6, 12), ...cycle(6, 7), { bleeding: 'H' as const, periodStart: true }]
+    const out = ids(mk('creighton', rows), addDays('2026-01-01', rows.length - 1))
+    expect(out).toContain('post-corta')
+    expect(out).toContain('post-variable')
+  })
+  it('moco tras el Pico y no en lactancia', () => {
+    const rows = [...cycle(6, 12, [dry, dry, dry, np, np, np]), { bleeding: 'H' as const, periodStart: true }]
+    const end = addDays('2026-01-01', rows.length - 1)
+    expect(ids(mk('creighton', rows), end)).toContain('moco-post-pico')
+    const lact = mk('creighton', rows)
+    lact.settings.stage = 'lactancia-total'
+    expect(ids(lact, end)).not.toContain('moco-post-pico')
+  })
+  it('sangrado en embarazo es urgente', () => {
+    const d = mk('creighton', [dry, { bleeding: 'L' }])
+    d.settings.stage = 'embarazo'
+    d.settings.stageSince = '2026-01-01'
+    const out = insights(d, buildCycles(d, '2026-01-02'), '2026-01-02')
+    expect(out[0]).toMatchObject({ id: 'sangrado-embarazo', level: 'urgente' })
+  })
+  it('lactancia total: primeras 8 semanas infértiles', () => {
+    const d = mk('creighton', [np, dry])
+    d.settings.stage = 'lactancia-total'
+    d.settings.stageSince = '2025-12-01'
+    const c = buildCycles(d, '2026-01-02')[0]
+    expect(c.days[0].fertility).toBe('infertil')
+  })
+  it('estampa amarilla cuenta como seca', () => {
+    const d = mk('creighton', [{ bleeding: 'M', periodStart: true }, { ...np, yellow: true }, dry])
+    d.settings.yellowStamps = true
+    const c = buildCycles(d, '2026-01-03')[0]
+    expect(c.days[1].stamp).toBe('yellow')
+    expect(c.days[1].fertility).toBe('infertil')
+    d.settings.yellowStamps = false
+    expect(buildCycles(d, '2026-01-03')[0].days[1].stamp).toBe('white-baby')
   })
 })

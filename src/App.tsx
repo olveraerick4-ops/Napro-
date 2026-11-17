@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useData } from './lib/store'
 import { buildCycles } from './lib/engine'
+import { insights } from './lib/insights'
 import { Icon } from './components/art'
 import { EntrySheet } from './components/EntrySheet'
 import { Onboarding } from './screens/Onboarding'
@@ -10,7 +11,7 @@ import { Summary } from './screens/Summary'
 import { Clinics } from './screens/Clinics'
 import { More } from './screens/More'
 
-type Tab = 'home' | 'chart' | 'stats' | 'clinic' | 'more'
+export type Tab = 'home' | 'chart' | 'stats' | 'clinic' | 'more'
 const TABS: { id: Tab; label: string }[] = [
   { id: 'home', label: 'Hoy' },
   { id: 'chart', label: 'Gráfica' },
@@ -24,6 +25,7 @@ export function App() {
   const [tab, setTab] = useState<Tab>('home')
   const [editing, setEditing] = useState<string | null>(null)
   const cycles = useMemo(() => buildCycles(data), [data])
+  const signals = useMemo(() => insights(data, cycles), [data, cycles])
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [tab])
@@ -33,9 +35,9 @@ export function App() {
   return (
     <div className="app">
       <main className="screen">
-        {tab === 'home' && <Home cycles={cycles} onEdit={setEditing} />}
+        {tab === 'home' && <Home cycles={cycles} signals={signals} onEdit={setEditing} onGo={setTab} />}
         {tab === 'chart' && <ChartScreen cycles={cycles} onEdit={setEditing} />}
-        {tab === 'stats' && <Summary cycles={cycles} />}
+        {tab === 'stats' && <Summary cycles={cycles} signals={signals} onGo={setTab} />}
         {tab === 'clinic' && <Clinics />}
         {tab === 'more' && <More />}
       </main>

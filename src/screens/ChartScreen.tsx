@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import type { Cycle } from '../lib/engine'
+import type { Cycle, StampKind } from '../lib/engine'
 import { fmtDM, fmtShort, today } from '../lib/dates'
 import { codeFor, methodDef } from '../lib/methods'
 import { useData } from '../lib/store'
@@ -19,7 +19,9 @@ export function ChartScreen({ cycles, onEdit }: { cycles: Cycle[]; onEdit: (d: s
     if (el && cur) el.scrollLeft = Math.max(0, (cur.days.findIndex((d) => d.date === now) - 4) * CELL)
   }, [cycles.length]) // eslint-disable-line
 
-  const legend = def.usesMucus ? (['red', 'green', 'white-baby', 'green-baby'] as const) : (['red', 'plain'] as const)
+  const legend: StampKind[] = def.usesMucus
+    ? ['red', 'green', 'white-baby', 'green-baby', ...(data.settings.yellowStamps ? (['yellow'] as const) : [])]
+    : ['red', 'plain']
 
   return (
     <>

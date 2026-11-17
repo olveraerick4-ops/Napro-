@@ -1,9 +1,10 @@
 import type { AppData, DayEntry, MethodId } from '../types'
 import { addDays, diffDays, today } from './dates'
 import { methodDef } from './methods'
+import { stageDef } from './stages'
 
 export type DayClass = 'none' | 'bleed' | 'dry' | 'nonpeak' | 'peak'
-export type StampKind = 'empty' | 'red' | 'green' | 'white-baby' | 'green-baby' | 'plain'
+export type StampKind = 'empty' | 'red' | 'green' | 'white-baby' | 'green-baby' | 'yellow' | 'plain'
 export type Fertility = 'fertil' | 'infertil' | 'desconocido'
 
 export interface DayInfo {
@@ -43,9 +44,11 @@ export interface Cycle {
 }
 
 // ---------- clasificación del día ----------
-export function classify(e: DayEntry | undefined, method: MethodId): DayClass {
+export function classify(e: DayEntry | undefined, method: MethodId, yellowOn = false): DayClass {
   if (!e) return 'none'
   const kind = methodDef(method).usesMucus
+  // estampa amarilla: flujo que la instructora identificó como no fértil, cuenta como seco
+  if (yellowOn && kind && e.yellow && e.bleeding !== 'H' && e.bleeding !== 'M') return 'dry'
   if (kind === 'creighton' && e.cr) {
     const b = e.cr.base
     if (b === '0' || b === '2' || b === '2W' || b === '4') return e.bleeding === 'H' || e.bleeding === 'M' ? 'bleed' : 'dry'
@@ -98,7 +101,7 @@ export function buildCycles(data: AppData, now: string = today()): Cycle[] {
     for (let n = 0; n < length; n++) {
       const date = addDays(b.start, n)
       const entry = data.entries[date]
-      days.push({ date, cd: n + 1, entry, cls: classify(entry, method), stamp: 'empty', mark: '', fertility: 'desconocido', reason: '' })
+      days.push({ date, cd: n + 1, entry, cls: classify(entry, method, !!data.settings.yellowStamps), stamp: 'empty', mark: '', fertility: 'desconocido', reason: '' })
     }
     return {
       index: i + 1,
@@ -180,7 +183,9 @@ function interpret(c: Cycle, data: AppData, lengths: number[], now: string) {
     const x = d[i]
     const bleeding = !!x.entry?.bleeding
     if (def.usesMucus) {
-      if (bleeding) x.stamp = 'red'
+      const yellow = !!data.settings.yellowStamps && !!x.entry?.yellow && x.cls === 'dry'
+      if (yellow) x.stamp = 'yellow'
+      else if (bleeding) x.stamp = 'red'
       else if (x.cls === 'peak' || x.cls === 'nonpeak') x.stamp = 'white-baby'
       else if (x.cls === 'dry') x.stamp = count[i] ? 'green-baby' : 'green'
     } else {
@@ -193,6 +198,7 @@ function interpret(c: Cycle, data: AppData, lengths: number[], now: string) {
       else if (x.mark === 'P') set(x, 'fertil', 'Día Pico: último día de moco transparente, elástico o lubricante.')
       else if (x.cls === 'peak') set(x, 'fertil', 'Moco tipo Pico (transparente, elástico o lubricante).')
       else if (x.cls === 'nonpeak') set(x, 'fertil', 'Día con moco: se considera fértil.')
+      else if (x.stamp === 'yellow' && !count[i]) set(x, 'infertil', 'Estampa amarilla: flujo que tu instructora identificó como no fértil (al final del día).')
       else if (count[i]) set(x, 'fertil', `Cuenta de 3: día ${count[i]}. La fertilidad continúa hasta completar tres días.`)
       else if (x.cls === 'bleed' || bleeding) set(x, 'fertil', 'Los días de sangrado se consideran fértiles en las instrucciones básicas.')
       else set(x, 'infertil', c.peakIdx !== null && i > c.peakIdx ? 'Día seco después del Pico + 3.' : 'Día seco antes del Pico (al final del día).')
@@ -211,6 +217,30 @@ function interpret(c: Cycle, data: AppData, lengths: number[], now: string) {
       if (!c.hasStart) set(x, 'desconocido', 'Marca el primer día de tu regla para empezar a contar.')
       else if (x.cd >= a && x.cd <= b) set(x, 'fertil', `Dentro de la ventana fértil estimada (días ${a} a ${b}).`)
       else set(x, 'infertil', `Fuera de la ventana fértil estimada (días ${a} a ${b}).`)
+    }
+  }
+
+  // --- ajustes según la etapa de vida ---
+  const stage = data.settings.stage
+  const sd = stageDef(stage)
+  const since = data.settings.stageSince
+  for (let i = 0; i < n; i++) {
+    const x = d[i]
+    if (sd.noFertility) {
+      set(x, 'desconocido', stage === 'embarazo' ? 'Durante el embarazo no se calculan días fértiles.' : 'Tras la menopausia no se calculan días fértiles.')
+      continue
+    }
+    if (stage === 'lactancia-total' && since && x.date >= since && diffDays(since, x.date) < 56 && x.entry) {
+      set(x, 'infertil', `Lactancia total: primeras 8 semanas tras el parto (día ${diffDays(since, x.date) + 1} de 56).`)
+      continue
+    }
+    if ((stage === 'lactancia-parcial' || stage === 'posparto') && since && x.date >= since && diffDays(since, x.date) < 56 && x.fertility === 'infertil') {
+      x.reason += stage === 'posparto' ? ' Sin lactancia la ovulación puede volver desde el día 27 tras el parto: sé muy constante con las observaciones.' : ' En lactancia parcial estas semanas no se consideran infértiles por sí mismas.'
+    }
+    if (stage === 'buscando' && def.usesMucus && c.peakIdx !== null && i >= c.peakIdx && i <= c.peakIdx + 2 && x.entry) {
+      set(x, 'fertil', i === c.peakIdx ? 'Día Pico: de los días de mayor fertilidad. Buen momento si buscáis embarazo.' : 'Uno de los dos días después del Pico: todavía muy fértil.')
+    } else if (stage === 'buscando' && x.cls === 'peak' && x.mark !== 'P') {
+      set(x, 'fertil', 'Moco tipo Pico: de los días de mayor fertilidad. Buen momento si buscáis embarazo.')
     }
   }
 

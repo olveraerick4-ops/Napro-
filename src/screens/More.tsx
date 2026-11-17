@@ -1,14 +1,16 @@
 import { useRef, useState } from 'react'
-import type { MethodId } from '../types'
+import type { LifeStage, MethodId } from '../types'
 import { APPEARANCES, BLEEDING, CR_BASES, CR_COLORS, CR_CONSIST, CR_FREQ, SENSATIONS, methodDef } from '../lib/methods'
 import { getData, isValidBackup, replaceAll, resetAll, setSettings, useData } from '../lib/store'
 import { demoData } from '../data/demo'
 import { exportBackup } from '../lib/export'
 import { BaseArt, STAMP_COLORS, Stamp, Swatch } from '../components/art'
-import { MethodPicker } from './Onboarding'
+import { MethodPicker, StagePicker } from './Onboarding'
+import { stageDef } from '../lib/stages'
 
-function Guide({ method }: { method: MethodId }) {
+function Guide({ method, yellow, stage }: { method: MethodId; yellow: boolean; stage: LifeStage }) {
   const def = methodDef(method)
+  const sd = stageDef(stage)
   return (
     <div className="guide">
       <p>{def.description}</p>
@@ -83,8 +85,17 @@ function Guide({ method }: { method: MethodId }) {
         <>
           <h4>Estampas</h4>
           <ul className="legend">
-            {(['red', 'green', 'white-baby', 'green-baby'] as const).map((s) => <li key={s}><Stamp kind={s} size={22} /> {STAMP_COLORS[s].label}</li>)}
+            {(['red', 'green', 'white-baby', 'green-baby', 'yellow'] as const).map((s) => <li key={s}><Stamp kind={s} size={22} /> {STAMP_COLORS[s].label}</li>)}
           </ul>
+          <h4>¿Cuándo se usan las estampas amarillas?</h4>
+          <p>Solo cuando tu instructora lo indica. Sirven para marcar un flujo que, en tu caso, no es fértil, y así poder distinguirlo del moco que sí lo es. Se usan, por ejemplo, con flujo continuo, con moco después del Pico por una inflamación leve del cuello del útero, en algunos sangrados premenstruales o en la lactancia.</p>
+          <p className="muted small">{yellow ? 'Las tienes activadas: aparecerán como opción al registrar cada día.' : 'Si tu instructora te las indica, actívalas en «Cambiar de método».'}</p>
+        </>
+      )}
+      {sd.notes.length > 0 && (
+        <>
+          <h4>En tu etapa: {sd.name.toLowerCase()}</h4>
+          <ul>{sd.notes.map((n) => <li key={n}>{n}</li>)}</ul>
         </>
       )}
       <p className="muted small">{def.note}</p>
@@ -135,11 +146,24 @@ export function More() {
       </header>
 
       {section("guia", `Guía: ${methodDef(s.method).short}`, <>
-        <Guide method={s.method} />
+        <Guide method={s.method} yellow={!!s.yellowStamps} stage={s.stage} />
+      </>)}
+
+      {section("etapa", `Etapa de vida: ${stageDef(s.stage).name}`, <>
+        <StagePicker value={s.stage} since={s.stageSince} onChange={(stage, stageSince) => setSettings({ stage, stageSince })} />
       </>)}
 
       {section("metodo", "Cambiar de método", <>
         <MethodPicker value={s.method} onChange={(method) => setSettings({ method })} />
+        {methodDef(s.method).usesMucus && (
+          <label className="check">
+            <input type="checkbox" checked={!!s.yellowStamps} onChange={(e) => setSettings({ yellowStamps: e.target.checked })} />
+            <span>
+              Mi instructora me indicó usar estampas amarillas
+              <small> · añade la opción al registrar cada día</small>
+            </span>
+          </label>
+        )}
         {s.method === 'calendario' && (
           <div className="filters">
             <label>

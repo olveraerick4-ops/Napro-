@@ -6,8 +6,11 @@ import { methodDef } from '../lib/methods'
 import { useData } from '../lib/store'
 import { CycleBars } from '../components/charts'
 import { Icon } from '../components/art'
+import { InsightList } from '../components/Insights'
+import type { Insight } from '../lib/insights'
+import type { Tab } from '../App'
 
-export function Summary({ cycles }: { cycles: Cycle[] }) {
+export function Summary({ cycles, signals, onGo }: { cycles: Cycle[]; signals: Insight[]; onGo: (t: Tab) => void }) {
   const data = useData()
   const def = methodDef(data.settings.method)
   const s = stats(cycles)
@@ -20,7 +23,7 @@ export function Summary({ cycles }: { cycles: Cycle[] }) {
     setErr('')
     try {
       const m = await import('../lib/export')
-      await (kind === 'excel' ? m.exportExcel(data, cycles) : m.exportPdf(data, cycles))
+      await (kind === 'excel' ? m.exportExcel(data, cycles, signals) : m.exportPdf(data, cycles, signals))
     } catch (e) {
       console.error(e)
       setErr('No se pudo generar el archivo. Inténtalo de nuevo.')
@@ -111,6 +114,8 @@ export function Summary({ cycles }: { cycles: Cycle[] }) {
           </div>
         </section>
       )}
+
+      {hasData && <InsightList items={signals} onClinics={() => onGo('clinic')} />}
 
       <section className="card">
         <h2>Descargar</h2>

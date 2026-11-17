@@ -1,3 +1,15 @@
+export type LifeStage =
+  | 'regular'
+  | 'buscando'
+  | 'embarazo'
+  | 'lactancia-total'
+  | 'lactancia-parcial'
+  | 'posparto'
+  | 'tras-pildora'
+  | 'tras-perdida'
+  | 'premenopausia'
+  | 'menopausia'
+
 export type MethodId = 'creighton' | 'billings' | 'sintotermico' | 'temperatura' | 'calendario'
 
 export type Bleeding = 'H' | 'M' | 'L' | 'VL' | 'B'
@@ -22,6 +34,8 @@ export interface DayEntry {
   /** Temperatura alterada (fiebre, mala noche, alcohol…): no cuenta */
   tempDisturbed?: boolean
   intercourse?: boolean
+  /** Estampa amarilla indicada por la instructora (flujo no fértil) */
+  yellow?: boolean
   notes?: string
 }
 
@@ -29,6 +43,11 @@ export interface Settings {
   onboarded: boolean
   method: MethodId
   country: string
+  stage: LifeStage
+  /** Fecha de referencia de la etapa: parto, concepción, pérdida, fin de la píldora */
+  stageSince?: string
+  /** La instructora indicó usar estampas amarillas */
+  yellowStamps?: boolean
   /** Calendario: duración del ciclo más corto / más largo conocidos */
   shortest?: number
   longest?: number
